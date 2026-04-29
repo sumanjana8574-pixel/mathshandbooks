@@ -14,6 +14,7 @@ android.ndk = 25b
 android.archs = arm64-v8a
 android.allow_backup = True
 android.accept_sdk_license = True
+android.enable_androidx = True
 
 [buildozer]
 log_level = 2
