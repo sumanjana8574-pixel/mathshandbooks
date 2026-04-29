@@ -25,12 +25,19 @@ jobs:
       - name: Build APK
         run: buildozer android debug 2>&1 | tee build.log
 
+      - name: Find APK
+        run: |
+          echo "=== Searching for APK ==="
+          find . -name "*.apk" 2>/dev/null
+          echo "=== bin/ contents ==="
+          ls -la bin/ 2>/dev/null || echo "No bin/ folder"
+
       - name: Upload APK
-        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: mathshandbook-apk
-          path: bin/*.apk
+          path: "**/*.apk"
+          if-no-files-found: warn
 
       - name: Upload log on failure
         if: failure()
