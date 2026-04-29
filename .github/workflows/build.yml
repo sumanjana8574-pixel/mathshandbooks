@@ -16,24 +16,23 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential git zip unzip openjdk-17-jdk libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev zlib1g-dev libtool libtool-bin autoconf automake m4 pkg-config cmake libffi-dev libssl-dev
+          sudo apt-get install -y build-essential git zip unzip libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev zlib1g-dev libtool libtool-bin autoconf automake m4 pkg-config cmake libffi-dev libssl-dev
           pip install buildozer==1.5.0 cython==0.29.33
 
       - name: Build APK
         run: |
-          buildozer android debug
-          echo "Exit code: $?"
-          ls -la bin/ || echo "No bin folder!"
-
-      - name: Show full log
-        if: always()
-        run: |
-          cat ~/.buildozer/logs/*.log 2>/dev/null || true
-          find . -name "*.log" -exec tail -50 {} \; 2>/dev/null || true
-          find . -name "*.apk" 2>/dev/null || echo "No APK found anywhere"
+          export JAVA_HOME=$JAVA_HOME_17_X64
+          buildozer android debug 2>&1 | tee build.log
+          find . -name "*.apk" 2>/dev/null || echo "No APK"
 
       - name: Upload APK
         if: always()
@@ -43,12 +42,9 @@ jobs:
           path: "**/*.apk"
           if-no-files-found: warn
 
-      - name: Upload logs
+      - name: Upload log
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: build-logs
-          path: |
-            **/*.log
-            .buildozer/android/platform/build*/*.log
-          if-no-files-found: warn
+          name: build-log
+          path: build.log
