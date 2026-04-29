@@ -5,36 +5,44 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build:
     runs-on: ubuntu-22.04
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v5
+    - uses: actions/setup-python@v5
       with:
         python-version: '3.11'
 
-    - name: Install dependencies
+    - name: Install system dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y \
-          python3-pip build-essential git \
+          build-essential git zip unzip openjdk-17-jdk \
           libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev \
           libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev \
-          zlib1g-dev openjdk-17-jdk unzip zip \
-          libtool libtool-bin autoconf automake m4 pkg-config cmake
+          zlib1g-dev libtool libtool-bin autoconf automake \
+          m4 pkg-config cmake libffi-dev libssl-dev
+
+    - name: Install buildozer
+      run: |
+        pip install --upgrade pip
         pip install buildozer==1.5.0 cython==0.29.33
+        pip install python-for-android
 
     - name: Build APK
       run: |
-        buildozer android debug
+        cd $GITHUB_WORKSPACE
+        buildozer android debug 2>&1
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: mathshandbook-apk
         path: bin/*.apk
+        if-no-files-found: warn
